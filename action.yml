@@ -1,0 +1,24 @@
+name: "Get the branch name of a related workflow run"
+description: "This actions ouput the name of the branch that triggered a workflow"
+outputs:
+  branch-name:
+    description: "Name of the branch"
+    value: ${{ steps.branch-name.outputs.branch-name }}
+runs:
+  using: "composite"
+  steps:
+    - id: branch-name
+      run: |
+        BRANCH_NAME=${{ github.ref_name }}  # Extract branch name for pushes
+        
+        if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+        BRANCH_NAME=${{ github.head_ref }}  # Override for pull requests
+        echo "Pull request"
+        fi
+        
+        BRANCH_NAME=${BRANCH_NAME//_/-/}  # Replace underscores with hyphens
+        BRANCH_NAME=${BRANCH_NAME/\//-}  # Replace slashes with hyphens
+        BRANCH_NAME=$(echo "${BRANCH_NAME}" | tr '[:upper:]' '[:lower:]')  # Convert to lowercase
+        
+        echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT  # Set environment variable
+      shell: bash
